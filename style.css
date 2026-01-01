@@ -1,65 +1,109 @@
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
 body {
   margin: 0;
-  background: #f4f6f8;
+  font-family: Arial, sans-serif;
+  background: #f3f5f7;
   color: #222;
 }
 
 header {
   background: #ffffff;
   padding: 12px 20px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #ccc;
 }
 
-.game {
+.layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  height: calc(100vh - 60px);
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
 }
 
 section {
-  padding: 20px;
+  background: #ffffff;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
 
-/* INIMIGO */
 .enemy {
-  background: #ffffff;
-  border-right: 1px solid #ddd;
   text-align: center;
 }
 
-.enemy-image img {
-  width: 200px;
-  transition: transform 0.15s ease;
-}
-
-.stats {
+.enemy-img {
+  width: 180px;
   margin: 10px 0;
 }
 
-#attackBtn {
-  padding: 10px 20px;
+.enemy-nav button {
+  margin: 0 5px;
+}
+
+.attack {
+  margin-top: 10px;
+  padding: 10px;
   font-size: 16px;
-  cursor: pointer;
 }
 
-/* UPGRADES */
-.upgrades {
-  background: #fafafa;
-}
-
-.player-stats {
-  margin-bottom: 20px;
+.upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 .upgrade {
-  display: block;
-  width: 100%;
   padding: 12px;
-  margin-bottom: 10px;
+  text-align: center;
+  border: 1px solid #aaa;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 14px;
+}
+
+.upgrade.active {
+  background: #eef6ff;
+}
+
+.upgrade.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.player ul {
+  list-style: none;
+  padding: 0;
+}
+
+.player li {
+  margin-bottom: 6px;
+}
+
+.craft {
+  margin-top: 12px;
+  padding: 10px;
+}
+
+.log {
+  margin: 0 16px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  padding: 12px;
+  height: 90px;
+  overflow-y: auto;
+}
+
+.log .success {
+  color: #007acc;
+  font-weight: bold;
+}
+
+footer {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #eaeaea;
+  border-top: 1px solid #ccc;
+}
+
+footer button {
+  padding: 8px 12px;
 }

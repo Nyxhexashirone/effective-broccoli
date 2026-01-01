@@ -1,0 +1,65 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f4f6f8;
+  color: #222;
+}
+
+header {
+  background: #ffffff;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: calc(100vh - 60px);
+}
+
+section {
+  padding: 20px;
+}
+
+/* INIMIGO */
+.enemy {
+  background: #ffffff;
+  border-right: 1px solid #ddd;
+  text-align: center;
+}
+
+.enemy-image img {
+  width: 200px;
+  transition: transform 0.15s ease;
+}
+
+.stats {
+  margin: 10px 0;
+}
+
+#attackBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* UPGRADES */
+.upgrades {
+  background: #fafafa;
+}
+
+.player-stats {
+  margin-bottom: 20px;
+}
+
+.upgrade {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}

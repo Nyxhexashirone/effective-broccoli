@@ -1,82 +1,131 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Destroyer Idle</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destroyer Idle</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Header com título e moedas -->
+    <header class="game-header">
+        <div class="title">Destroyer Idle</div>
+        <div class="currency-container">
+            <div class="currency bronze">
+                <span class="currency-icon">🟤</span>
+                <span class="currency-amount">0</span>
+            </div>
+            <div class="currency silver">
+                <span class="currency-icon">⚪</span>
+                <span class="currency-amount">0</span>
+            </div>
+            <div class="currency gold">
+                <span class="currency-icon">🟡</span>
+                <span class="currency-amount">0</span>
+            </div>
+            <div class="currency platinum">
+                <span class="currency-icon">⚫</span>
+                <span class="currency-amount">0</span>
+            </div>
+        </div>
+    </header>
 
-<header>
-  <h1>Destroyer Idle</h1>
-</header>
+    <!-- Área principal do jogo -->
+    <main class="game-container">
+        <!-- Seção do Inimigo (esquerda) -->
+        <section class="enemy-section">
+            <div class="enemy-display">
+                <button class="nav-arrow left-arrow">◀</button>
+                
+                <div class="enemy-area">
+                    <div class="enemy-image-container">
+                        <img src="https://via.placeholder.com/250x250/87CEEB/ffffff?text=Bolha+de+Ar" 
+                             alt="Enemy" 
+                             class="enemy-image"
+                             id="enemyImage">
+                    </div>
+                    
+                    <div class="enemy-info">
+                        <h2 class="enemy-name" id="enemyName">Bolha de Ar</h2>
+                        <div class="enemy-stats">
+                            <div class="stat hp">HP: <span id="currentHP">1</span>/<span id="maxHP">1</span></div>
+                            <div class="stat defense">D: <span id="defense">0</span></div>
+                        </div>
+                        <div class="enemy-drops">
+                            <div class="drop-info">🟤 <span id="bronzeDrop">1-2</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="nav-arrow right-arrow">▶</button>
+            </div>
 
-<main class="layout">
+            <!-- Informações da Arma -->
+            <div class="weapon-info">
+                <div class="weapon-header">
+                    <h3 class="weapon-name" id="weaponName">Dedo Indicador</h3>
+                </div>
+                <div class="weapon-stats">
+                    <div class="stat-item">STR: <span id="weaponStr">1</span></div>
+                    <div class="stat-item">Bônus: <span id="weaponBonus">+0%</span></div>
+                    <div class="stat-item">Dano Total: <span id="totalDamage">1</span></div>
+                </div>
+            </div>
+        </section>
 
-  <!-- INIMIGO -->
-  <section class="enemy">
-    <div class="enemy-nav">
-      <button>◀</button>
-      <button>▶</button>
-    </div>
+        <!-- Seção de Stats e Log (direita) -->
+        <section class="stats-section">
+            <div class="stats-panel">
+                <div class="stat-row">
+                    <span class="stat-label">Dano por Click:</span>
+                    <span class="stat-value" id="clickDamage">1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Dano Automático/s:</span>
+                    <span class="stat-value" id="autoDPS">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Moedas por Segundo:</span>
+                    <span class="stat-value" id="coinsPerSec">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Chance Outras Moedas:</span>
+                    <span class="stat-value" id="coinChance">0%</span>
+                </div>
+            </div>
 
-    <img class="enemy-img" src="https://via.placeholder.com/180">
+            <!-- Log de Eventos -->
+            <div class="log-panel">
+                <h3 class="log-title">Log de Eventos</h3>
+                <div class="log-content" id="logContent">
+                    <div class="log-entry">Bem-vindo ao Destroyer Idle!</div>
+                    <div class="log-entry offline">Você ganhou 150 🟤 enquanto estava fora (5m 23s)</div>
+                    <div class="log-entry">Destruiu: Bolha de Ar (+2 🟤)</div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    <h2>Paper</h2>
+    <!-- Botões de Navegação Inferior -->
+    <nav class="bottom-nav">
+        <button class="nav-button destruction-btn">
+            <span class="btn-icon">⚔️</span>
+            <span class="btn-text">Destruction</span>
+        </button>
+        <button class="nav-button story-btn">
+            <span class="btn-icon">📖</span>
+            <span class="btn-text">História</span>
+        </button>
+        <button class="nav-button settings-btn">
+            <span class="btn-icon">⚙️</span>
+            <span class="btn-text">Configurações</span>
+        </button>
+        <button class="nav-button future-btn disabled">
+            <span class="btn-icon">🔒</span>
+            <span class="btn-text">Em Breve</span>
+        </button>
+    </nav>
 
-    <div class="enemy-stats">
-      <div>HP: <strong>227</strong></div>
-      <div>DEF: <strong>3</strong></div>
-      <div>Reward: <strong>$10</strong></div>
-    </div>
-
-    <button class="attack">Attack</button>
-  </section>
-
-  <!-- UPGRADES -->
-  <section class="upgrades">
-    <h3>Upgrades</h3>
-
-    <div class="upgrade-grid">
-      <div class="upgrade active">POW<br><small>Lv 4</small></div>
-      <div class="upgrade locked">Auto</div>
-      <div class="upgrade locked">Crit</div>
-      <div class="upgrade active">💎<br>0/20</div>
-      <div class="upgrade locked">Click+</div>
-      <div class="upgrade locked">Click×</div>
-    </div>
-  </section>
-
-  <!-- STATUS DO PLAYER -->
-  <section class="player">
-    <h3>Player Stats</h3>
-
-    <ul>
-      <li>Damage / click: <strong>116</strong></li>
-      <li>Damage / sec: <strong>122</strong></li>
-      <li>Money / click: <strong>$2.50</strong></li>
-      <li>Money / sec: <strong>$2.81</strong></li>
-      <li>Avg. Gems / sec: <strong>0.006 💎</strong></li>
-    </ul>
-
-    <button class="craft">
-      Craft new Tool<br>
-      💎 1
-    </button>
-  </section>
-
-</main>
-
-<section class="log">
-  <p class="success">Game Saved!</p>
-  <p>Welcome back! While you were away, your device earned you <strong>$1,345</strong>.</p>
-</section>
-
-<footer>
-  <button>⛏ Mining</button>
-  <button>📜 Story</button>
-  <button>⚙ Settings</button>
-</footer>
-
+    <script src="game.js"></script>
 </body>
 </html>

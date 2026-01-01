@@ -11,40 +11,72 @@
   <h1>Destroyer Idle</h1>
 </header>
 
-<main class="game">
+<main class="layout">
+
   <!-- INIMIGO -->
   <section class="enemy">
-    <h2>Bolha de Ar</h2>
-
-    <div class="enemy-image">
-      <img id="enemyImg" src="https://via.placeholder.com/200" alt="Inimigo">
+    <div class="enemy-nav">
+      <button>◀</button>
+      <button>▶</button>
     </div>
 
-    <div class="stats">
-      <div>HP: <span id="hp">1</span></div>
-      <div>DEF: <span id="def">0</span></div>
+    <img class="enemy-img" src="https://via.placeholder.com/180">
+
+    <h2>Paper</h2>
+
+    <div class="enemy-stats">
+      <div>HP: <strong>227</strong></div>
+      <div>DEF: <strong>3</strong></div>
+      <div>Reward: <strong>$10</strong></div>
     </div>
 
-    <button id="attackBtn">Atacar</button>
+    <button class="attack">Attack</button>
   </section>
 
   <!-- UPGRADES -->
   <section class="upgrades">
-    <h2>Upgrades</h2>
+    <h3>Upgrades</h3>
 
-    <div class="player-stats">
-      <p>Moedas: <span id="coins">0</span></p>
-      <p>Poder: <span id="power">1</span></p>
-    </div>
-
-    <div class="upgrade-list">
-      <button class="upgrade" id="upgradePower">
-        +1 Poder (Custo: 5)
-      </button>
+    <div class="upgrade-grid">
+      <div class="upgrade active">POW<br><small>Lv 4</small></div>
+      <div class="upgrade locked">Auto</div>
+      <div class="upgrade locked">Crit</div>
+      <div class="upgrade active">💎<br>0/20</div>
+      <div class="upgrade locked">Click+</div>
+      <div class="upgrade locked">Click×</div>
     </div>
   </section>
+
+  <!-- STATUS DO PLAYER -->
+  <section class="player">
+    <h3>Player Stats</h3>
+
+    <ul>
+      <li>Damage / click: <strong>116</strong></li>
+      <li>Damage / sec: <strong>122</strong></li>
+      <li>Money / click: <strong>$2.50</strong></li>
+      <li>Money / sec: <strong>$2.81</strong></li>
+      <li>Avg. Gems / sec: <strong>0.006 💎</strong></li>
+    </ul>
+
+    <button class="craft">
+      Craft new Tool<br>
+      💎 1
+    </button>
+  </section>
+
 </main>
 
-<script src="game.js"></script>
+<section class="log">
+  <p class="success">Game Saved!</p>
+  <p>Welcome back! While you were away, your device earned you <strong>$1,345</strong>.</p>
+</section>
+
+<footer>
+  <button>⛏ Mining</button>
+  <button>📜 Story</button>
+  <button>⚙ Settings</button>
+</footer>
+
 </body>
 </html>

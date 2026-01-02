@@ -1,7 +1,0 @@
-{
-  "name": "effective-broccoli",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "mkdir -p build && cp index.html build/ || echo '<html><body><h1>Game is live!</h1><p>Your clicker game is running on GitHub Pages.</p></body></html>' > build/index.html"
-  }
-}

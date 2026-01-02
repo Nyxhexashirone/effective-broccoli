@@ -3,12 +3,11 @@ name: Deploy React App
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     
     steps:
     - name: Checkout
@@ -19,26 +18,15 @@ jobs:
       with:
         node-version: '18'
     
-    # Install dependencies (creates lock file if missing)
     - name: Install dependencies
-      run: |
-        if [ -f "package-lock.json" ]; then
-          npm ci
-        elif [ -f "yarn.lock" ]; then
-          yarn install --frozen-lockfile
-        else
-          npm install
-        fi
+      run: npm install
     
     - name: Build
       run: npm run build
     
-    # Create 404.html for React Router
-    - name: Create 404.html
-      run: cp build/index.html build/404.html
-    
-    - name: Deploy to GitHub Pages
+    - name: Deploy
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build
+        publish_branch: gh-pages

@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Hammer, BookOpen, Settings, Trophy, Zap } from 'lucide-react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 
 import { targets } from '../data/targets';
 import { upgrades } from '../data/upgrades';
@@ -7,7 +6,6 @@ import { achievements } from '../data/achievements';
 
 import { formatBigNumber } from '../utils/format';
 import { applyDamage } from '../systems/damage';
-import { applyDrops } from '../systems/drops';
 import { tickDamage } from '../systems/tick';
 import { calculateAutoDPS } from '../systems/autoClick';
 import { getUpgradeCost, applyClickDamageUpgrade } from '../systems/upgrades';
@@ -15,92 +13,109 @@ import { checkAchievements } from '../systems/achievements';
 import { compare, subtract } from '../systems/bigNumbers';
 import { createLog, LogEntry } from '../systems/log';
 import { loadSave, saveGame, createNewSave } from '../systems/save';
+import { saveToGameState } from '../systems/saveMapper';
 
 import { BigNumber } from '../types/BigNumber';
 import { AchievementProgress } from '../systems/achievements';
 import { AchievementState } from '../types/Achievement';
 
-// Componentes simples para os achievements
-const AchievementsButton = ({ onClick, disabled }: any) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-40 flex items-center gap-2"
-  >
-    <Trophy size={16} />
-    Achievements
-  </button>
-);
+// Importar componentes de achievements
+import { AchievementsButton } from '../components/achievements/AchievementsButton';
+import { AchievementsPanel } from '../components/achievements/AchievementsPanel';
 
-const AchievementsPanel = ({ unlockedAchievements, onClose }: any) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Achievements</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 p-1"
-        >
-          ✕
-        </button>
-      </div>
-      <div className="mb-4">
-        <p className="text-gray-600">
-          Unlocked: <strong>{unlockedAchievements.size}</strong> achievements
-        </p>
-      </div>
-      <div className="space-y-3">
-        {achievements.map((achievement) => {
-          const isUnlocked = unlockedAchievements.has(achievement.id);
-          return (
-            <div
-              key={achievement.id}
-              className={`p-3 border rounded ${
-                isUnlocked
-                  ? 'border-yellow-400 bg-yellow-50'
-                  : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-full ${
-                    isUnlocked ? 'bg-yellow-100' : 'bg-gray-100'
-                  }`}
-                >
-                  <Trophy
-                    size={20}
-                    className={isUnlocked ? 'text-yellow-600' : 'text-gray-400'}
-                  />
-                </div>
-                <div className="flex-1">
-                  <h3
-                    className={`font-medium ${
-                      isUnlocked ? 'text-gray-800' : 'text-gray-500'
-                    }`}
-                  >
-                    {achievement.name}
-                  </h3>
-                  <p
-                    className={`text-sm ${
-                      isUnlocked ? 'text-gray-600' : 'text-gray-400'
-                    }`}
-                  >
-                    {achievement.description}
-                  </p>
-                </div>
-                {isUnlocked && (
-                  <span className="text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
-                    Unlocked
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-);
+// Definir o tipo GameState
+interface GameState {
+  targetIndex: number;
+  hp: BigNumber;
+  currencies: Record<string, BigNumber>;
+  upgrades: Record<string, number>;
+  unlocks: {
+    achievements: boolean;
+    upgrades: boolean;
+    autoClick: boolean;
+  };
+}
+
+// Definir ações para o reducer
+type GameAction =
+  | { type: 'SET_TARGET'; payload: number }
+  | { type: 'SET_HP'; payload: BigNumber }
+  | { type: 'SET_CURRENCIES'; payload: { bronze: BigNumber } }
+  | { type: 'SET_UPGRADES'; payload: Record<string, number> }
+  | { type: 'SET_UNLOCKS'; payload: { achievements: boolean; upgrades: boolean; autoClick: boolean } }
+  | { type: 'APPLY_DROPS'; payload: Array<{ currency: string; amount: BigNumber }> }
+  | { type: 'BUY_UPGRADE'; payload: { id: string; cost: BigNumber; level: number } }
+  | { type: 'TICK'; payload: { delta: number } };
+
+// Reducer function
+function gameReducer(state: GameState, action: GameAction): GameState {
+  switch (action.type) {
+    case 'SET_TARGET':
+      return {
+        ...state,
+        targetIndex: action.payload,
+        hp: targets[action.payload].maxHP
+      };
+    
+    case 'SET_HP':
+      return {
+        ...state,
+        hp: action.payload
+      };
+    
+    case 'SET_CURRENCIES':
+      return {
+        ...state,
+        currencies: action.payload
+      };
+    
+    case 'SET_UPGRADES':
+      return {
+        ...state,
+        upgrades: action.payload
+      };
+    
+    case 'SET_UNLOCKS':
+      return {
+        ...state,
+        unlocks: action.payload
+      };
+    
+    case 'APPLY_DROPS':
+      const newCurrencies = { ...state.currencies };
+      action.payload.forEach(drop => {
+        if (drop.currency === 'bronze') {
+          newCurrencies.bronze = {
+            mantissa: newCurrencies.bronze.mantissa + drop.amount.mantissa,
+            exponent: newCurrencies.bronze.exponent + drop.amount.exponent
+          };
+        }
+      });
+      return {
+        ...state,
+        currencies: newCurrencies
+      };
+    
+    case 'BUY_UPGRADE':
+      const newUpgrades = { ...state.upgrades };
+      newUpgrades[action.payload.id] = action.payload.level;
+      
+      return {
+        ...state,
+        currencies: {
+          ...state.currencies,
+          bronze: subtract(state.currencies.bronze, action.payload.cost)
+        },
+        upgrades: newUpgrades
+      };
+    
+    case 'TICK':
+      return state;
+    
+    default:
+      return state;
+  }
+}
 
 const Panel = ({ title, children, disabled = false }: any) => (
   <div
@@ -119,24 +134,18 @@ export default function App() {
   // ===== LOAD SAVE =====
   const save = loadSave() ?? createNewSave();
 
-  // ===== CORE STATE =====
-  const [targetIndex, setTargetIndex] = useState(0);
+  // ===== INITIAL STATE =====
+  const initialState = saveToGameState(save);
+
+  // ===== USE REDUCER =====
+  const [state, dispatch] = useReducer(gameReducer, initialState);
+
+  // Destructuring para facilitar o uso
+  const { targetIndex, hp, currencies, upgrades: upgradeLevels, unlocks } = state;
   const target = targets[targetIndex];
 
-  // Estado para mostrar achievements
+  // ===== LOCAL STATE (não relacionado ao reducer) =====
   const [showAchievements, setShowAchievements] = useState(false);
-  // Estado para desbloquear botão de achievements
-  const [unlocks, setUnlocks] = useState({
-    achievements: true // Pode ajustar essa lógica conforme necessário
-  });
-
-  const [hp, setHp] = useState<BigNumber>(target.maxHP);
-  const [currencies, setCurrencies] = useState(save.currencies);
-  const [upgradeLevels, setUpgradeLevels] = useState<Record<string, number>>(
-    save.upgrades ?? {}
-  );
-
-  // ===== LOG =====
   const [log, setLog] = useState<LogEntry[]>([
     createLog('You exist. Unfortunately.'),
   ]);
@@ -160,12 +169,11 @@ export default function App() {
   );
 
   const autoDamage: BigNumber = { mantissa: 0, exponent: 0 };
-  const autoSpeed = 0; // será desbloqueado via achievements
+  const autoSpeed = 0;
   const autoDps = calculateAutoDPS(autoDamage, autoSpeed);
 
   // ===== SAVE EFFECT =====
   useEffect(() => {
-    // Simulando que o save tenha achievements
     const achievementsArray = Array.from(achievementProgress.unlocked);
     
     saveGame({
@@ -173,37 +181,44 @@ export default function App() {
       currencies,
       upgrades: upgradeLevels,
       discovery: { currencies: ['bronze'] },
-      achievements: achievementsArray, // Adicionado achievements ao save
+      achievements: achievementsArray,
+      unlocks,
+      lastPlayed: Date.now(),
     });
-  }, [currencies, upgradeLevels, achievementProgress]);
+  }, [currencies, upgradeLevels, achievementProgress, unlocks]);
 
   // ===== LOG HELPER =====
-  function pushLog(text: string) {
+  const pushLog = useRef((text: string) => {
     setLog((prev) => [...prev.slice(-30), createLog(text)]);
-  }
+  }).current;
 
   // ===== ACHIEVEMENT CHECK =====
-  function evaluateAchievements() {
-    const unlocked = checkAchievements(
+  const evaluateAchievements = useRef(() => {
+    const result = checkAchievements(
       achievements,
       achievementState.current,
-      achievementProgress
+      achievementProgress,
+      unlocks
     );
 
-    unlocked.forEach((id) => {
+    result.unlockedIds.forEach((id) => {
       const a = achievements.find((x) => x.id === id);
       if (!a) return;
 
       pushLog(`Achievement unlocked: ${a.name}`);
     });
-  }
+
+    if (result.unlocks !== unlocks) {
+      dispatch({ type: 'SET_UNLOCKS', payload: result.unlocks });
+    }
+  }).current;
 
   // ===== CLICK =====
-  function onClickTarget() {
+  const onClickTarget = useRef(() => {
     achievementState.current.clicks += 1;
 
     const newHp = applyDamage(hp, clickDamage, target.defense);
-    setHp(newHp);
+    dispatch({ type: 'SET_HP', payload: newHp });
 
     evaluateAchievements();
 
@@ -211,22 +226,29 @@ export default function App() {
       achievementState.current.targetsDestroyed += 1;
 
       pushLog(`You destroyed ${target.name}.`);
-      setCurrencies((prev) => applyDrops(prev, target.drops));
+      
+      dispatch({ 
+        type: 'APPLY_DROPS', 
+        payload: Object.entries(target.drops).map(([currency, amount]) => ({ 
+          currency, 
+          amount 
+        })) 
+      });
 
       if (targetIndex < targets.length - 1) {
-        setTargetIndex(targetIndex + 1);
-        setHp(targets[targetIndex + 1].maxHP);
+        const newTargetIndex = targetIndex + 1;
+        dispatch({ type: 'SET_TARGET', payload: newTargetIndex });
         pushLog('A new target appears.');
       } else {
-        setHp(target.maxHP);
+        dispatch({ type: 'SET_HP', payload: target.maxHP });
       }
 
       evaluateAchievements();
     }
-  }
+  }).current;
 
   // ===== BUY UPGRADE =====
-  function buyUpgrade(id: string) {
+  const buyUpgrade = useRef((id: string) => {
     const upgrade = upgrades.find((u) => u.id === id);
     if (!upgrade) return;
 
@@ -236,50 +258,53 @@ export default function App() {
     const cost = getUpgradeCost(upgrade.cost.bronze, level);
     if (compare(currencies.bronze, cost) < 0) return;
 
-    setCurrencies((prev) => ({
-      ...prev,
-      bronze: subtract(prev.bronze, cost),
-    }));
-
-    setUpgradeLevels((prev) => ({
-      ...prev,
-      [id]: level + 1,
-    }));
+    dispatch({
+      type: 'BUY_UPGRADE',
+      payload: { id, cost, level: level + 1 }
+    });
 
     achievementState.current.upgradesPurchased += 1;
 
     pushLog(`Upgrade purchased: ${upgrade.name} (Lv ${level + 1})`);
     evaluateAchievements();
-  }
+  }).current;
 
-  // ===== IDLE TICK LOOP =====
-  const lastTime = useRef<number>(performance.now());
-
+  // ===== ÚNICO TICK LOOP =====
   useEffect(() => {
     let frame: number;
+    let last = performance.now();
 
     function loop(now: number) {
-      const delta = (now - lastTime.current) / 1000;
-      lastTime.current = now;
+      const delta = (now - last) / 1000;
+      last = now;
+
+      dispatch({ type: 'TICK', payload: { delta } });
 
       if (autoDps.mantissa > 0) {
         const result = tickDamage(hp, autoDps, target.defense, delta);
-
+        
         if (result.destroyed) {
           achievementState.current.targetsDestroyed += 1;
-          setCurrencies((prev) => applyDrops(prev, target.drops));
+          
+          dispatch({ 
+            type: 'APPLY_DROPS', 
+            payload: Object.entries(target.drops).map(([currency, amount]) => ({ 
+              currency, 
+              amount 
+            })) 
+          });
 
           if (targetIndex < targets.length - 1) {
-            setTargetIndex(targetIndex + 1);
-            setHp(targets[targetIndex + 1].maxHP);
+            const newTargetIndex = targetIndex + 1;
+            dispatch({ type: 'SET_TARGET', payload: newTargetIndex });
             pushLog('Destroyed automatically.');
           } else {
-            setHp(target.maxHP);
+            dispatch({ type: 'SET_HP', payload: target.maxHP });
           }
 
           evaluateAchievements();
-        } else {
-          setHp(result.newHp);
+        } else if (result.newHp.mantissa !== hp.mantissa || result.newHp.exponent !== hp.exponent) {
+          dispatch({ type: 'SET_HP', payload: result.newHp });
         }
       }
 
@@ -288,7 +313,7 @@ export default function App() {
 
     frame = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frame);
-  }, [autoDps, hp, targetIndex]);
+  }, [dispatch, autoDps, hp, target.defense, target.drops, target.maxHP, targetIndex, evaluateAchievements, pushLog]);
 
   // ===== RENDER =====
   return (

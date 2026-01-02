@@ -4,11 +4,14 @@ const SAVE_KEY = 'destroyer_clicker_save_v1';
 
 export interface SaveData {
   version: number;
-  currencies: any;
+  currencies: Record<string, any>; // Alterado de 'any' para 'Record<string, any>'
   upgrades: Record<string, number>;
   achievements: string[];
   unlocks: Unlocks;
   lastPlayed: number;
+  discovery?: {
+    currencies: string[];
+  };
 }
 
 export function createNewSave(): SaveData {
@@ -28,6 +31,13 @@ export function createNewSave(): SaveData {
   };
 }
 
+// Função de migração
+function migrateSave(old: any): SaveData {
+  // Por enquanto, reinicia — no futuro você migra campos
+  console.warn('Save version mismatch, creating new save');
+  return createNewSave();
+}
+
 export function saveGame(data: SaveData) {
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
 }
@@ -37,7 +47,13 @@ export function loadSave(): SaveData | null {
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw);
+    const save = JSON.parse(raw) as SaveData;
+
+    if (save.version !== 1) {
+      return migrateSave(save);
+    }
+
+    return save;
   } catch {
     return null;
   }

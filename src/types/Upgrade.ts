@@ -6,6 +6,4 @@ export interface Upgrade {
   description: string;
   maxLevel: number;
   cost: Record<string, BigNumber>;
-  effect: (level: number) => void;
-  unlockCondition?: () => boolean;
 }

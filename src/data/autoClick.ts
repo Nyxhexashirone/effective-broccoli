@@ -1,4 +1,4 @@
-import { Upgrade } from '../../types/Upgrade';
+import { Upgrade } from '../types/Upgrade';
 
 export const autoClickUpgrades: Upgrade[] = [
   {

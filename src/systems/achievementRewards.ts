@@ -7,7 +7,10 @@ export function applyAchievementReward(
   unlocks: Unlocks
 ): Unlocks {
   if (achievement.reward.type === 'unlock_system') {
-    return unlockSystem(unlocks, achievement.reward.value as keyof Unlocks);
+    return unlockSystem(
+      unlocks,
+      achievement.reward.value as keyof Unlocks
+    );
   }
 
   return unlocks;

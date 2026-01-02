@@ -3,12 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Game</title>
+    <title>Clicker Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+            background: #45a049;
+        }
+        .counter {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="module" src="/src/App.tsx"></script>
-    <h1>Game is building...</h1>
-    <p>If you see this, the React build hasn't completed yet.</p>
+    <h1>🎮 Effective Broccoli Clicker Game</h1>
+    <p>Your game is successfully deployed on GitHub Pages!</p>
+    
+    <div class="game-container">
+        <h2>Score</h2>
+        <div class="counter" id="score">0</div>
+        
+        <button onclick="clickButton()">🎯 Click Me!</button>
+        <button onclick="buyAutoClicker()">🤖 Buy Auto-Clicker (10 points)</button>
+        <button onclick="buyMultiplier()">⚡ Buy Multiplier (50 points)</button>
+        
+        <h3>Stats</h3>
+        <p>Auto-clickers: <span id="autoClickers">0</span></p>
+        <p>Multiplier: <span id="multiplier">1</span>x</p>
+        <p>Points per click: <span id="pointsPerClick">1</span></p>
+    </div>
+
+    <script>
+        let score = 0;
+        let autoClickers = 0;
+        let multiplier = 1;
+        let pointsPerClick = 1;
+        
+        function clickButton() {
+            score += pointsPerClick;
+            updateDisplay();
+        }
+        
+        function buyAutoClicker() {
+            if (score >= 10) {
+                score -= 10;
+                autoClickers++;
+                updateDisplay();
+                startAutoClicker();
+            }
+        }
+        
+        function buyMultiplier() {
+            if (score >= 50) {
+                score -= 50;
+                multiplier += 0.5;
+                pointsPerClick = Math.floor(multiplier);
+                updateDisplay();
+            }
+        }
+        
+        function startAutoClicker() {
+            setInterval(() => {
+                if (autoClickers > 0) {
+                    score += autoClickers * multiplier;
+                    updateDisplay();
+                }
+            }, 1000);
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = Math.floor(score);
+            document.getElementById('autoClickers').textContent = autoClickers;
+            document.getElementById('multiplier').textContent = multiplier.toFixed(1);
+            document.getElementById('pointsPerClick').textContent = pointsPerClick;
+        }
+        
+        // Initialize
+        updateDisplay();
+        console.log("Game loaded successfully!");
+    </script>
 </body>
 </html>

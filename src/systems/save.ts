@@ -1,32 +1,44 @@
-import { Save } from '../types/Save';
+import { Unlocks } from '../types/Unlocks';
 
-const SAVE_KEY = 'destroyer_clicker_save';
-const SAVE_VERSION = 1;
+const SAVE_KEY = 'destroyer_clicker_save_v1';
 
-export function loadSave(): Save | null {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as Save;
-  } catch {
-    return null;
-  }
+export interface SaveData {
+  version: number;
+  currencies: any;
+  upgrades: Record<string, number>;
+  achievements: string[];
+  unlocks: Unlocks;
+  lastPlayed: number;
 }
 
-export function createNewSave(): Save {
+export function createNewSave(): SaveData {
   return {
-    version: SAVE_VERSION,
+    version: 1,
     currencies: {
       bronze: { mantissa: 0, exponent: 0 },
     },
     upgrades: {},
-    discovery: {
-      currencies: ['bronze'],
+    achievements: [],
+    unlocks: {
+      upgrades: false,
+      autoClick: false,
+      achievements: true,
     },
+    lastPlayed: Date.now(),
   };
 }
 
-export function saveGame(save: Save) {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+export function saveGame(data: SaveData) {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+}
+
+export function loadSave(): SaveData | null {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }

@@ -1,131 +1,217 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Destroyer Idle</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Destroyer Clicker</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body {
+      margin: 0;
+      background: #f6f6f6;
+      color: #333;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header, footer {
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer {
+      background: #e0e0e0;
+      border-top: 1px solid #ccc;
+      gap: 12px;
+      justify-content: flex-start;
+    }
+
+    main {
+      flex: 1;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 300px 1fr 360px;
+      gap: 24px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .panel h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #777;
+      margin: 0;
+    }
+
+    .target-img {
+      width: 160px;
+      height: 160px;
+      background: #ddd;
+      border: 1px solid #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .click-area {
+      height: 260px;
+      border: 2px dashed #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+    }
+
+    .log {
+      height: 120px;
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    .currency {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .locked {
+      color: #aaa;
+    }
+
+    .upgrades {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      padding: 6px 12px;
+      border: 1px solid #999;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    aside {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  </style>
 </head>
 <body>
-    <!-- Header com título e moedas -->
-    <header class="game-header">
-        <div class="title">Destroyer Idle</div>
-        <div class="currency-container">
-            <div class="currency bronze">
-                <span class="currency-icon">🟤</span>
-                <span class="currency-amount">0</span>
-            </div>
-            <div class="currency silver">
-                <span class="currency-icon">⚪</span>
-                <span class="currency-amount">0</span>
-            </div>
-            <div class="currency gold">
-                <span class="currency-icon">🟡</span>
-                <span class="currency-amount">0</span>
-            </div>
-            <div class="currency platinum">
-                <span class="currency-icon">⚫</span>
-                <span class="currency-amount">0</span>
-            </div>
-        </div>
-    </header>
 
-    <!-- Área principal do jogo -->
-    <main class="game-container">
-        <!-- Seção do Inimigo (esquerda) -->
-        <section class="enemy-section">
-            <div class="enemy-display">
-                <button class="nav-arrow left-arrow">◀</button>
-                
-                <div class="enemy-area">
-                    <div class="enemy-image-container">
-                        <img src="https://via.placeholder.com/250x250/87CEEB/ffffff?text=Bolha+de+Ar" 
-                             alt="Enemy" 
-                             class="enemy-image"
-                             id="enemyImage">
-                    </div>
-                    
-                    <div class="enemy-info">
-                        <h2 class="enemy-name" id="enemyName">Bolha de Ar</h2>
-                        <div class="enemy-stats">
-                            <div class="stat hp">HP: <span id="currentHP">1</span>/<span id="maxHP">1</span></div>
-                            <div class="stat defense">D: <span id="defense">0</span></div>
-                        </div>
-                        <div class="enemy-drops">
-                            <div class="drop-info">🟤 <span id="bronzeDrop">1-2</span></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="nav-arrow right-arrow">▶</button>
-            </div>
+<header>
+  <h1>Destroyer Clicker</h1>
+  <div class="currency">
+    <span>💎 124</span>
+    <span class="locked">🔒 ???</span>
+    <span class="locked">🔒 ???</span>
+    <span class="locked">🔒 ???</span>
+  </div>
+</header>
 
-            <!-- Informações da Arma -->
-            <div class="weapon-info">
-                <div class="weapon-header">
-                    <h3 class="weapon-name" id="weaponName">Dedo Indicador</h3>
-                </div>
-                <div class="weapon-stats">
-                    <div class="stat-item">STR: <span id="weaponStr">1</span></div>
-                    <div class="stat-item">Bônus: <span id="weaponBonus">+0%</span></div>
-                    <div class="stat-item">Dano Total: <span id="totalDamage">1</span></div>
-                </div>
-            </div>
-        </section>
+<main>
 
-        <!-- Seção de Stats e Log (direita) -->
-        <section class="stats-section">
-            <div class="stats-panel">
-                <div class="stat-row">
-                    <span class="stat-label">Dano por Click:</span>
-                    <span class="stat-value" id="clickDamage">1</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Dano Automático/s:</span>
-                    <span class="stat-value" id="autoDPS">0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Moedas por Segundo:</span>
-                    <span class="stat-value" id="coinsPerSec">0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Chance Outras Moedas:</span>
-                    <span class="stat-value" id="coinChance">0%</span>
-                </div>
-            </div>
+  <!-- LEFT -->
+  <aside>
+    <div class="panel">
+      <h2>Target</h2>
+      <div class="center">
+        <div class="target-img">PNG</div>
+        <h3>Air Bubble</h3>
+        <p style="font-size:12px;color:#777">
+          Fragile and almost meaningless
+        </p>
+      </div>
+    </div>
 
-            <!-- Log de Eventos -->
-            <div class="log-panel">
-                <h3 class="log-title">Log de Eventos</h3>
-                <div class="log-content" id="logContent">
-                    <div class="log-entry">Bem-vindo ao Destroyer Idle!</div>
-                    <div class="log-entry offline">Você ganhou 150 🟤 enquanto estava fora (5m 23s)</div>
-                    <div class="log-entry">Destruiu: Bolha de Ar (+2 🟤)</div>
-                </div>
-            </div>
-        </section>
-    </main>
+    <div class="panel">
+      <h2>Target Stats</h2>
+      <p>HP: 1 / 1</p>
+      <p>Defense: 0</p>
+      <p>Drops: Bronze Coins</p>
+    </div>
+  </aside>
 
-    <!-- Botões de Navegação Inferior -->
-    <nav class="bottom-nav">
-        <button class="nav-button destruction-btn">
-            <span class="btn-icon">⚔️</span>
-            <span class="btn-text">Destruction</span>
-        </button>
-        <button class="nav-button story-btn">
-            <span class="btn-icon">📖</span>
-            <span class="btn-text">História</span>
-        </button>
-        <button class="nav-button settings-btn">
-            <span class="btn-icon">⚙️</span>
-            <span class="btn-text">Configurações</span>
-        </button>
-        <button class="nav-button future-btn disabled">
-            <span class="btn-icon">🔒</span>
-            <span class="btn-text">Em Breve</span>
-        </button>
-    </nav>
+  <!-- CENTER -->
+  <section style="display:flex;flex-direction:column;gap:24px;">
+    <div class="panel">
+      <h2>Destroy</h2>
+      <div class="click-area">
+        CLICK AREA / ANIMATION
+      </div>
+    </div>
 
-    <script src="game.js"></script>
+    <div class="panel">
+      <h2>Log</h2>
+      <div class="log">
+        You destroyed something fragile.
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT -->
+  <aside>
+    <div class="panel">
+      <h2>Upgrades</h2>
+      <div class="upgrades">
+        <button>🖱️</button>
+        <button>％</button>
+        <button>🔨</button>
+        <button class="locked">🔒</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Blacksmith</h2>
+      <p style="font-size:13px;color:#666">
+        Craft destructive tools.
+      </p>
+      <button class="locked">Locked</button>
+    </div>
+
+    <div class="panel">
+      <h2>Player Stats</h2>
+      <p>Click Damage: ???</p>
+      <p>Auto DPS: ???</p>
+      <p>Luck: ???</p>
+    </div>
+  </aside>
+
+</main>
+
+<footer>
+  <button>🔨 Destroy</button>
+  <button>📖 Achievements</button>
+  <button class="locked">🔒 Prestige</button>
+  <button>⚙️ Settings</button>
+</footer>
+
 </body>
 </html>

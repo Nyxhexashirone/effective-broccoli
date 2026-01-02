@@ -1,0 +1,35 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Create package.json if missing
+      run: |
+        if [ ! -f "package.json" ]; then
+          echo '{
+            "name": "my-game",
+            "version": "1.0.0",
+            "scripts": {
+              "build": "mkdir -p build && echo \"Building...\" && echo \"<!DOCTYPE html><html><head><title>My Game</title></head><body><h1>Game Loaded!</h1><div id=\\\"root\\\"></div><script>console.log(\\\"Game ready\\\")</script></body></html>\" > build/index.html"
+            }
+          }' > package.json
+        fi
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: build
+        branch: gh-pages

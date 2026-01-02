@@ -1,27 +1,27 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { targets } from '../data/targets';
-import { upgrades } from '../data/upgrades';
-import { achievements } from '../data/achievements';
+import { targets } from './data/targets';
+import { upgrades } from './data/upgrades';
+import { achievements } from './data/achievements';
 
-import { formatBigNumber } from '../utils/format';
-import { applyDamage } from '../systems/damage';
-import { tickDamage } from '../systems/tick';
-import { calculateAutoDPS } from '../systems/autoClick';
-import { getUpgradeCost, applyClickDamageUpgrade } from '../systems/upgrades';
-import { checkAchievements } from '../systems/achievements';
-import { compare, subtract } from '../systems/bigNumbers';
-import { createLog, LogEntry } from '../systems/log';
-import { loadSave, saveGame, createNewSave } from '../systems/save';
-import { saveToGameState } from '../systems/saveMapper';
+import { formatBigNumber } from './utils/format';
+import { applyDamage } from './systems/damage';
+import { tickDamage } from './systems/tick';
+import { calculateAutoDPS } from './systems/autoClick';
+import { getUpgradeCost, applyClickDamageUpgrade } from './systems/upgrades';
+import { checkAchievements } from './systems/achievements';
+import { compare, subtract } from './systems/bigNumbers';
+import { createLog, LogEntry } from './systems/log';
+import { loadSave, saveGame, createNewSave } from './systems/save';
+import { saveToGameState } from './systems/saveMapper';
 
-import { BigNumber } from '../types/BigNumber';
-import { AchievementProgress } from '../systems/achievements';
-import { AchievementState } from '../types/Achievement';
+import { BigNumber } from './types/BigNumber';
+import { AchievementProgress } from './systems/achievements';
+import { AchievementState } from './types/Achievement';
 
 // Importar componentes de achievements
-import { AchievementsButton } from '../components/achievements/AchievementsButton';
-import { AchievementsPanel } from '../components/achievements/AchievementsPanel';
+import { AchievementsButton } from './components/achievements/AchievementsButton';
+import { AchievementsPanel } from './components/achievements/AchievementsPanel';
 
 // Definir o tipo GameState
 interface GameState {

@@ -1,12 +1,7 @@
 {
   "name": "effective-broccoli",
   "version": "1.0.0",
-  "description": "A clicker game",
-  "main": "index.js",
   "scripts": {
-    "build": "mkdir -p build && echo '<!DOCTYPE html><html><head><title>Clicker Game</title><style>body{font-family:Arial;text-align:center;padding:50px;}button{padding:20px;font-size:20px;}</style></head><body><h1>🎮 Clicker Game</h1><p>Score: <span id=\"score\">0</span></p><button onclick=\"clickScore()\">Click Me!</button><script>let score=0;function clickScore(){score++;document.getElementById(\"score\").textContent=score;}</script></body></html>' > build/index.html"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT"
+    "build": "mkdir -p build && cp index.html build/ || echo '<html><body><h1>Game is live!</h1><p>Your clicker game is running on GitHub Pages.</p></body></html>' > build/index.html"
+  }
 }

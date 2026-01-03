@@ -11,6 +11,15 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Remove orphaned submodules before checkout
+        run: |
+          echo "=== Cleaning orphaned submodules ==="
+          rm -f .gitmodules 2>/dev/null || true
+          git config --remove-section submodule 2>/dev/null || true
+          git config --global --remove-section submodule 2>/dev/null || true
+          rm -rf .git/modules/* 2>/dev/null || true
+        shell: bash
+
       - name: Clean Checkout (No Submodules)
         uses: actions/checkout@v4
         with:
@@ -25,15 +34,25 @@ jobs:
       - name: Purge Git Cache Immediately
         run: |
           echo "=== Removing stale git cache and submodules ==="
+          # Remove any leftover git metadata
           rm -rf .git/modules/* 2>/dev/null || true
-          rm -rf .git/config 2>/dev/null || true
+          
+          # Force remove submodule configs
           git config --remove-section "submodule" 2>/dev/null || true
           git config --global --remove-section "submodule" 2>/dev/null || true
-          find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+          git config --local --remove-section "submodule" 2>/dev/null || true
           
-          # Also clean any gh-pages cache artifacts
+          # Remove .gitmodules file if it exists
+          rm -f .gitmodules 2>/dev/null || true
+          
+          # Find and remove any .git directories in workspace
+          find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+          find . -name ".git*" -type f -exec rm -f {} + 2>/dev/null || true
+          
+          # Clean gh-pages cache artifacts
           rm -rf node_modules/.cache/gh-pages 2>/dev/null || true
           rm -rf .cache/gh-pages 2>/dev/null || true
+          rm -rf **/.cache/gh-pages 2>/dev/null || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -44,6 +63,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Clean any remaining git artifacts in node_modules
+        run: |
+          echo "=== Final cleanup in node_modules ==="
+          find node_modules -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+          find node_modules -name ".git*" -type f -exec rm -f {} + 2>/dev/null || true
+
       - name: Build
         run: npm run build
 
@@ -52,4 +77,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          force_orphan: true  # Ensures clean gh-pages branch
+          force_orphan: true

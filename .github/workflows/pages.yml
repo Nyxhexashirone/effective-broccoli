@@ -4,35 +4,52 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: false
-        fetch-depth: 0
+      - name: Clean Checkout (No Submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: 0
+          NO_SUBMODULES: true
 
-    - name: Clean git metadata from node_modules
-      run: |
-        find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
-        rm -rf node_modules || true
+      - name: Purge Git Cache Immediately
+        run: |
+          echo "=== Removing stale git cache and submodules ==="
+          rm -rf .git/modules/* 2>/dev/null || true
+          rm -rf .git/config 2>/dev/null || true
+          git config --remove-section "submodule" 2>/dev/null || true
+          git config --global --remove-section "submodule" 2>/dev/null || true
+          find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+          
+          # Also clean any gh-pages cache artifacts
+          rm -rf node_modules/.cache/gh-pages 2>/dev/null || true
+          rm -rf .cache/gh-pages 2>/dev/null || true
 
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build
-      run: npm run build
+      - name: Build
+        run: npm run build
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist  # or your build output folder
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          force_orphan: true  # Ensures clean gh-pages branch

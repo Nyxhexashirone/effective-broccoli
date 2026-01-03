@@ -14,6 +14,7 @@ import { compare, subtract } from './systems/bigNumbers';
 import { createLog, LogEntry } from './systems/log';
 import { loadSave, saveGame, createNewSave } from './systems/save';
 import { saveToGameState } from './systems/saveMapper';
+import { GameState } from './game/GameState';
 
 import { BigNumber } from './types/BigNumber';
 import { AchievementProgress } from './systems/achievements';
@@ -22,19 +23,6 @@ import { AchievementState } from './types/Achievement';
 // Importar componentes de achievements
 import { AchievementsButton } from './components/achievements/AchievementsButton';
 import { AchievementsPanel } from './components/achievements/AchievementsPanel';
-
-// Definir o tipo GameState
-interface GameState {
-  targetIndex: number;
-  hp: BigNumber;
-  currencies: Record<string, BigNumber>;
-  upgrades: Record<string, number>;
-  unlocks: {
-    achievements: boolean;
-    upgrades: boolean;
-    autoClick: boolean;
-  };
-}
 
 // Definir ações para o reducer
 type GameAction =

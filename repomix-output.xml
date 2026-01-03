@@ -78,7 +78,6 @@ src/
     constants.ts
     gameReducer.ts
     GameState.ts
-    state.ts
   systems/
     achievementRewards.ts
     achievements.ts
@@ -791,16 +790,6 @@ export interface GameState {
 }
 </file>
 
-<file path="src/game/state.ts">
-export interface GameState {
-  targetIndex: number;
-  hp: BigNumber;
-  currencies: Record<string, BigNumber>;
-  upgrades: Record<string, number>;
-  unlocks: Unlocks;
-}
-</file>
-
 <file path="src/systems/bigNumbers.ts">
 import { BigNumber } from '../types/BigNumber';
 
@@ -1094,6 +1083,146 @@ export interface Unlocks {
 }
 </file>
 
+<file path="LICENSE.txt">
+Este software é proprietário. Proibida cópia, modificação ou distribuição sem autorização escrita.
+</file>
+
+<file path="destroyer-clicker/vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: '/effective-broccoli/',
+})
+</file>
+
+<file path="src/data/autoClick.ts">
+import { Upgrade } from '../types/Upgrade';
+
+export const autoClickUpgrades: Upgrade[] = [
+  {
+    id: 'auto_damage',
+    name: 'Auto Damage',
+    description: 'Automatically deals damage every second.',
+    maxLevel: 50,
+    cost: {
+      bronze: { mantissa: 15, exponent: 0 },
+    },
+  },
+  {
+    id: 'auto_speed',
+    name: 'Auto Speed',
+    description: 'Increases how often auto damage is applied.',
+    maxLevel: 25,
+    cost: {
+      bronze: { mantissa: 50, exponent: 0 },
+    },
+  },
+];
+</file>
+
+<file path="src/systems/achievementRewards.ts">
+import { Unlocks } from '../types/Unlocks';
+import { unlockSystem } from './unlocks';
+import { Achievement } from '../types/Achievement';
+
+export function applyAchievementReward(
+  achievement: Achievement,
+  unlocks: Unlocks
+): Unlocks {
+  if (achievement.reward.type === 'unlock_system') {
+    return unlockSystem(
+      unlocks,
+      achievement.reward.value as keyof Unlocks
+    );
+  }
+
+  return unlocks;
+}
+</file>
+
+<file path="src/systems/achievements.ts">
+import { Achievement, AchievementState } from '../types/Achievement';
+import { Unlocks } from '../types/Unlocks';
+import { applyAchievementReward } from './achievementRewards';
+
+export interface AchievementProgress {
+  unlocked: Set<string>;
+}
+
+export interface AchievementResult {
+  unlockedIds: string[];
+  unlocks: Unlocks;
+}
+
+export function checkAchievements(
+  achievements: Achievement[],
+  state: AchievementState,
+  progress: AchievementProgress,
+  unlocks: Unlocks
+): AchievementResult {
+  const unlockedIds: string[] = [];
+  let newUnlocks = unlocks;
+
+  for (const achievement of achievements) {
+    if (progress.unlocked.has(achievement.id)) continue;
+
+    if (achievement.condition(state)) {
+      progress.unlocked.add(achievement.id);
+      unlockedIds.push(achievement.id);
+
+      newUnlocks = applyAchievementReward(
+        achievement,
+        newUnlocks
+      );
+    }
+  }
+
+  return {
+    unlockedIds,
+    unlocks: newUnlocks,
+  };
+}
+</file>
+
+<file path="src/systems/autoClick.ts">
+import { BigNumber } from '../types/BigNumber';
+import { multiply, add } from './bigNumbers';
+
+export function calculateAutoDamage(
+  base: BigNumber,
+  level: number
+): BigNumber {
+  if (level === 0) return { mantissa: 0, exponent: 0 };
+  return multiply(base, { mantissa: level, exponent: 0 });
+}
+
+export function calculateAutoSpeed(level: number): number {
+  return 1 + level * 0.25;
+}
+
+export function calculateAutoDPS(
+  damage: BigNumber,
+  speed: number
+): BigNumber {
+  return multiply(damage, { mantissa: speed, exponent: 0 });
+}
+</file>
+
+<file path="src/types/Upgrade.ts">
+import { BigNumber } from './BigNumber';
+
+export interface Upgrade {
+  id: string;
+  name: string;
+  description: string;
+  maxLevel: number;
+  cost: Record<string, BigNumber>;
+}
+</file>
+
 <file path="src/App.tsx">
 import { useEffect, useReducer, useRef, useState } from 'react';
 
@@ -1111,6 +1240,7 @@ import { compare, subtract } from './systems/bigNumbers';
 import { createLog, LogEntry } from './systems/log';
 import { loadSave, saveGame, createNewSave } from './systems/save';
 import { saveToGameState } from './systems/saveMapper';
+import { GameState } from './game/GameState';
 
 import { BigNumber } from './types/BigNumber';
 import { AchievementProgress } from './systems/achievements';
@@ -1119,19 +1249,6 @@ import { AchievementState } from './types/Achievement';
 // Importar componentes de achievements
 import { AchievementsButton } from './components/achievements/AchievementsButton';
 import { AchievementsPanel } from './components/achievements/AchievementsPanel';
-
-// Definir o tipo GameState
-interface GameState {
-  targetIndex: number;
-  hp: BigNumber;
-  currencies: Record<string, BigNumber>;
-  upgrades: Record<string, number>;
-  unlocks: {
-    achievements: boolean;
-    upgrades: boolean;
-    autoClick: boolean;
-  };
-}
 
 // Definir ações para o reducer
 type GameAction =
@@ -1535,146 +1652,6 @@ export default function App() {
       )}
     </div>
   );
-}
-</file>
-
-<file path="LICENSE.txt">
-Este software é proprietário. Proibida cópia, modificação ou distribuição sem autorização escrita.
-</file>
-
-<file path="destroyer-clicker/vite.config.ts">
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  base: '/effective-broccoli/',
-})
-</file>
-
-<file path="src/data/autoClick.ts">
-import { Upgrade } from '../types/Upgrade';
-
-export const autoClickUpgrades: Upgrade[] = [
-  {
-    id: 'auto_damage',
-    name: 'Auto Damage',
-    description: 'Automatically deals damage every second.',
-    maxLevel: 50,
-    cost: {
-      bronze: { mantissa: 15, exponent: 0 },
-    },
-  },
-  {
-    id: 'auto_speed',
-    name: 'Auto Speed',
-    description: 'Increases how often auto damage is applied.',
-    maxLevel: 25,
-    cost: {
-      bronze: { mantissa: 50, exponent: 0 },
-    },
-  },
-];
-</file>
-
-<file path="src/systems/achievementRewards.ts">
-import { Unlocks } from '../types/Unlocks';
-import { unlockSystem } from './unlocks';
-import { Achievement } from '../types/Achievement';
-
-export function applyAchievementReward(
-  achievement: Achievement,
-  unlocks: Unlocks
-): Unlocks {
-  if (achievement.reward.type === 'unlock_system') {
-    return unlockSystem(
-      unlocks,
-      achievement.reward.value as keyof Unlocks
-    );
-  }
-
-  return unlocks;
-}
-</file>
-
-<file path="src/systems/achievements.ts">
-import { Achievement, AchievementState } from '../types/Achievement';
-import { Unlocks } from '../types/Unlocks';
-import { applyAchievementReward } from './achievementRewards';
-
-export interface AchievementProgress {
-  unlocked: Set<string>;
-}
-
-export interface AchievementResult {
-  unlockedIds: string[];
-  unlocks: Unlocks;
-}
-
-export function checkAchievements(
-  achievements: Achievement[],
-  state: AchievementState,
-  progress: AchievementProgress,
-  unlocks: Unlocks
-): AchievementResult {
-  const unlockedIds: string[] = [];
-  let newUnlocks = unlocks;
-
-  for (const achievement of achievements) {
-    if (progress.unlocked.has(achievement.id)) continue;
-
-    if (achievement.condition(state)) {
-      progress.unlocked.add(achievement.id);
-      unlockedIds.push(achievement.id);
-
-      newUnlocks = applyAchievementReward(
-        achievement,
-        newUnlocks
-      );
-    }
-  }
-
-  return {
-    unlockedIds,
-    unlocks: newUnlocks,
-  };
-}
-</file>
-
-<file path="src/systems/autoClick.ts">
-import { BigNumber } from '../types/BigNumber';
-import { multiply, add } from './bigNumbers';
-
-export function calculateAutoDamage(
-  base: BigNumber,
-  level: number
-): BigNumber {
-  if (level === 0) return { mantissa: 0, exponent: 0 };
-  return multiply(base, { mantissa: level, exponent: 0 });
-}
-
-export function calculateAutoSpeed(level: number): number {
-  return 1 + level * 0.25;
-}
-
-export function calculateAutoDPS(
-  damage: BigNumber,
-  speed: number
-): BigNumber {
-  return multiply(damage, { mantissa: speed, exponent: 0 });
-}
-</file>
-
-<file path="src/types/Upgrade.ts">
-import { BigNumber } from './BigNumber';
-
-export interface Upgrade {
-  id: string;
-  name: string;
-  description: string;
-  maxLevel: number;
-  cost: Record<string, BigNumber>;
 }
 </file>
 

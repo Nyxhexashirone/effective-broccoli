@@ -11,48 +11,67 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Remove orphaned submodules before checkout
+      # OPTION A: Use this for a complete manual clone (bypasses checkout action)
+      - name: Complete Clean Clone (No Submodules)
         run: |
-          echo "=== Cleaning orphaned submodules ==="
+          echo "=== Performing complete manual clean clone ==="
+          
+          # Remove everything
+          rm -rf ./* ./.* 2>/dev/null || true
+          
+          # Fresh clone WITHOUT checkout action
+          git clone --no-checkout --single-branch --depth 1 --no-recurse-submodules \
+            https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} .
+          
+          # Checkout the specific commit
+          git checkout ${{ github.sha }}
+          
+          # Purge ALL submodule data immediately
+          echo "=== Purging all submodule data ==="
+          git submodule deinit --all -f 2>/dev/null || true
+          rm -rf .git/modules 2>/dev/null || true
           rm -f .gitmodules 2>/dev/null || true
           git config --remove-section submodule 2>/dev/null || true
           git config --global --remove-section submodule 2>/dev/null || true
-          rm -rf .git/modules/* 2>/dev/null || true
+          
+          # Clean any node_modules git cache
+          rm -rf node_modules 2>/dev/null || true
+          
+          echo "=== Clean clone complete ==="
+          git status
         shell: bash
 
-      - name: Clean Checkout (No Submodules)
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-          fetch-depth: 0
-          clean: true
-          persist-credentials: false
-        env:
-          GIT_CONFIG_COUNT: 0
-          NO_SUBMODULES: true
-
-      - name: Purge Git Cache Immediately
-        run: |
-          echo "=== Removing stale git cache and submodules ==="
-          # Remove any leftover git metadata
-          rm -rf .git/modules/* 2>/dev/null || true
-          
-          # Force remove submodule configs
-          git config --remove-section "submodule" 2>/dev/null || true
-          git config --global --remove-section "submodule" 2>/dev/null || true
-          git config --local --remove-section "submodule" 2>/dev/null || true
-          
-          # Remove .gitmodules file if it exists
-          rm -f .gitmodules 2>/dev/null || true
-          
-          # Find and remove any .git directories in workspace
-          find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
-          find . -name ".git*" -type f -exec rm -f {} + 2>/dev/null || true
-          
-          # Clean gh-pages cache artifacts
-          rm -rf node_modules/.cache/gh-pages 2>/dev/null || true
-          rm -rf .cache/gh-pages 2>/dev/null || true
-          rm -rf **/.cache/gh-pages 2>/dev/null || true
+      # OR OPTION B: Use the checkout action with aggressive cleanup (comment out Option A above)
+      # Uncomment the following lines if you prefer the checkout action approach:
+      # - name: Remove orphaned submodules before checkout
+      #   run: |
+      #     echo "=== Cleaning orphaned submodules ==="
+      #     rm -f .gitmodules 2>/dev/null || true
+      #     git config --remove-section submodule 2>/dev/null || true
+      #     git config --global --remove-section submodule 2>/dev/null || true
+      #     rm -rf .git/modules/* 2>/dev/null || true
+      #   shell: bash
+      #
+      # - name: Clean Checkout (No Submodules)
+      #   uses: actions/checkout@v4
+      #   with:
+      #     submodules: false
+      #     fetch-depth: 0
+      #     clean: true
+      #     persist-credentials: false
+      #   env:
+      #     GIT_CONFIG_COUNT: 0
+      #     NO_SUBMODULES: true
+      #
+      # - name: Purge Git Cache Immediately
+      #   run: |
+      #     echo "=== Removing stale git cache and submodules ==="
+      #     rm -rf .git/modules/* 2>/dev/null || true
+      #     git config --remove-section "submodule" 2>/dev/null || true
+      #     git config --global --remove-section "submodule" 2>/dev/null || true
+      #     rm -f .gitmodules 2>/dev/null || true
+      #     find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+      #     rm -rf node_modules/.cache/gh-pages 2>/dev/null || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -63,11 +82,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Clean any remaining git artifacts in node_modules
+      - name: Clean any remaining git artifacts
         run: |
-          echo "=== Final cleanup in node_modules ==="
+          echo "=== Final cleanup ==="
+          # Remove any .git directories that might have been pulled in via npm packages
           find node_modules -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
           find node_modules -name ".git*" -type f -exec rm -f {} + 2>/dev/null || true
+          # Double-check for gh-pages cache
+          rm -rf node_modules/.cache/gh-pages 2>/dev/null || true
 
       - name: Build
         run: npm run build
@@ -78,3 +100,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           force_orphan: true
+          keep_files: false  # Ensure clean deployment

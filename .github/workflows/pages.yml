@@ -1,9 +1,12 @@
 name: Deploy to GitHub Pages
+
 on:
   push:
     branches: [ main ]
+
 permissions:
   contents: write  # Required for gh-pages deployment
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -11,6 +14,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          submodules: false  # Explicitly disable submodules
+          fetch-depth: 0     # Full history if needed
           persist-credentials: false  # Important for gh-pages
 
       - name: Setup Node
@@ -21,6 +26,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Remove problematic cache
+        run: |
+          find node_modules -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+          rm -rf node_modules/.cache/gh-pages
 
       - name: Build
         run: npm run build

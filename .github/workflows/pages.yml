@@ -4,39 +4,35 @@ on:
   push:
     branches: [ main ]
 
-permissions:
-  contents: write  # Required for gh-pages deployment
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: false  # Explicitly disable submodules
-          fetch-depth: 0     # Full history if needed
-          persist-credentials: false  # Important for gh-pages
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: false
+        fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+    - name: Clean git metadata from node_modules
+      run: |
+        find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+        rm -rf node_modules || true
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
 
-      - name: Remove problematic cache
-        run: |
-          find node_modules -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
-          rm -rf node_modules/.cache/gh-pages
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Build
-        run: npm run build
+    - name: Build
+      run: npm run build
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist  # or your build output folder
